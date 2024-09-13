@@ -8,6 +8,11 @@ import java.util.Random;
 
 public class CasaSurpresa extends Casa {
     Jogador novoTipo;
+
+    public CasaSurpresa(int numero) {
+        super(numero);
+    }
+
     @Override
     public void aplicarRegra(Jogador jogador) {
         Random random = new Random();

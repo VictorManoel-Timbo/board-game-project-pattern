@@ -6,6 +6,10 @@ import models.Casa;
 import models.Jogador;
 
 public class CasaAzar extends Casa {
+    public CasaAzar(int numero) {
+        super(numero);
+    }
+
     @Override
     public void aplicarRegra(Jogador jogador) {
         if (!(jogador instanceof JogadorSortudo)) {

@@ -6,6 +6,10 @@ import models.Jogador;
 import java.util.Arrays;
 
 public class CasaJogaDeNovo extends Casa {
+    public CasaJogaDeNovo(int numero) {
+        super(numero);
+    }
+
     @Override
     public void aplicarRegra(Jogador jogador) {
         System.out.println("Casa Joga de Novo: O jogador lança os dados novamente!");

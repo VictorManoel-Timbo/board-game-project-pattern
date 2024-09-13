@@ -5,6 +5,10 @@ import models.Casa;
 import models.Jogador;
 
 public class CasaTroca extends Casa {
+    public CasaTroca(int numero) {
+        super(numero);
+    }
+
     @Override
     public void aplicarRegra(Jogador jogador) {
         System.out.println("Casa Troca: Você compra um novo equipamento");

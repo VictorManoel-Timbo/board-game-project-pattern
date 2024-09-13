@@ -16,7 +16,7 @@ public class JogadorSortudo extends Jogador {
     }
     @Override
     public String getEquipamentos() {
-        return equipamentos;
+        return (equipamentos==null)?"Sem Equipamentos":equipamentos;
     }
     @Override
     public int[] jogarDados() {

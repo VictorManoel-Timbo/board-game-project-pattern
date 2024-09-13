@@ -16,7 +16,7 @@ public class JogadorComum extends Jogador {
     }
     @Override
     public String getEquipamentos() {
-        return equipamentos;
+        return (equipamentos==null)?"Sem Equipamentos":equipamentos;
     }
 
     @Override

@@ -4,24 +4,24 @@ package factory.casas;
 import models.Casa;
 
 public class CasaFactory {
-    public static Casa criarCasa(int tipo) {
+    public static Casa criarCasa(int tipo, int numero) {
         switch (tipo) {
             case 1:
-                return new CasaSurpresa();
+                return new CasaSurpresa(numero);
             case 2:
-                return new CasaPrisao();
+                return new CasaPrisao(numero);
             case 3:
-                return new CasaSorte();
+                return new CasaSorte(numero);
             case 4:
-                return new CasaAzar();
+                return new CasaAzar(numero);
             case 5:
-                return new CasaReversa();
+                return new CasaReversa(numero);
             case 6:
-                return new CasaJogaDeNovo();
+                return new CasaJogaDeNovo(numero);
             case 7:
-                return new CasaTroca();
+                return new CasaTroca(numero);
             case 8:
-                return new CasaSimples();
+                return new CasaSimples(numero);
             default:
                 throw new IllegalArgumentException("Tipo de casa não reconhecido.");
         }
