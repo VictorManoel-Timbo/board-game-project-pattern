@@ -17,6 +17,7 @@ public class Jogo {
     Tabuleiro tabuleiro;
     int totalJogadas = 0;
     int ultimaCasa;
+    boolean modoDebug = false;
     public static final int LIMITE_JOGADORES = 6;
     public static final int LIMITE_CASAS = 40;
     public static final double PERCENTUAL_MAX_CASAS_ESPECIAIS = 0.5;
@@ -168,28 +169,105 @@ public class Jogo {
             configJogadores();
             configTabuleiro();
 
+            System.out.println("Deseja ativar o modo debug? (1 para sim, 2 para não)");
+            int escolhaDebug = input.nextInt();
+            if (escolhaDebug == 1) {
+                modoDebug = true;
+                System.out.println("Modo debug ativado.");
+            }
+
             tabuleiro = Tabuleiro.getInstancia(listaDeJogadores, listaDeCasas);
             boolean jogoTerminado = false;
 
             while (!jogoTerminado) {
-                tabuleiro.mostrarEstado(nomeDasCores);
-                tabuleiro.jogarRodada(nomeDasCores);
-
                 for (Jogador jogador : listaDeJogadores) {
+                    tabuleiro.mostrarEstado(jogador);
+                    jogarRodada(jogador);
+
                     if (jogador.getPosicao() >= ultimaCasa) {
                         String nomeCor = nomeDasCores.get(jogador.getCor());
-                        System.out.println(jogador.getCor() + "O jogador " + nomeCor + " venceu o jogo!" + RESET);
+                        System.out.println(jogador.getCor() + "O jogador " + nomeCor + " venceu o jogo!" + RESET+"\n");
                         jogoTerminado = true;
                         break;
                     }
                 }
-
                 totalJogadas++;
             }
-
             mostrarResultadoFinal();
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    private void jogarRodada(Jogador jogador) {
+        if (jogador.isPreso()) {
+            libertarJogador(jogador);
+        } else {
+            if (modoDebug) {
+                realizarJogadaDebug(jogador);
+            } else {
+                realizarJogadaNormal(jogador);
+            }
+        }
+        jogador.jogada();
+        verificarCasaEspecial(jogador);
+    }
+
+    private void libertarJogador(Jogador jogadorAtual){
+        String nomeCor = nomeDasCores.get(jogadorAtual.getCor());
+        if (jogadorAtual.getJogadas() - jogadorAtual.getJogadaPreso() >= 2) {
+            jogadorAtual.setPreso(false);
+            System.out.println("Jogador " + nomeCor + " cumpriu as 2 rodadas e está livre para jogar.");
+            jogarRodada(jogadorAtual);
+        } else {
+            System.out.println("Deseja pagar 2 moedas para sair da prisão? (1 para sim, 2 para não)");
+            Scanner input = new Scanner(System.in);
+            int escolha = input.nextInt();
+
+            if (escolha == 1) {
+                if (jogadorAtual.pagarTaxaParaSair()) {
+                    jogadorAtual.setPreso(false);
+                    jogarRodada(jogadorAtual);
+                } else {
+                    System.out.println("Jogador não pode pagar e continuará preso.");
+                }
+            } else {
+                System.out.println("Jogador " + nomeCor + " optou por não pagar e continuará preso.");
+            }
+        }
+    }
+
+    private void realizarJogadaNormal(Jogador jogador) {
+        int[] dados = jogador.jogarDados();
+        int somaDados = dados[0] + dados[1];
+        String nomeCor = nomeDasCores.get(jogador.getCor());
+        System.out.println(jogador.getCor() + "Jogador " + nomeCor + " jogou os dados: " + dados[0] + " e " + dados[1] + ". Soma: " + somaDados + RESET);
+
+        int novaPosicao = jogador.getPosicao() + somaDados;
+        jogador.setPosicao(novaPosicao);
+        System.out.println("Jogador " + nomeCor + " moveu para a casa " + novaPosicao + RESET + "\n");
+    }
+
+    private void realizarJogadaDebug(Jogador jogador) {
+        String nomeCor = nomeDasCores.get(jogador.getCor());
+        System.out.println("Modo debug: Escolha a casa para o Jogador " + nomeCor + " (1 a " + ultimaCasa + "): ");
+        int novaPosicao = input.nextInt();
+
+        if (novaPosicao < 1 || novaPosicao > ultimaCasa) {
+            System.out.println("Posição inválida. Por favor, escolha uma casa entre 1 e " + ultimaCasa);
+            realizarJogadaDebug(jogador);
+        } else {
+            jogador.setPosicao(novaPosicao);
+            System.out.println("Jogador " + nomeCor + " moveu diretamente para a casa " + novaPosicao + RESET + "\n");
+        }
+    }
+
+    private void verificarCasaEspecial(Jogador jogador) {
+        for (Casa casa : listaDeCasas) {
+            if (jogador.getPosicao() == casa.getNumero()) {
+                casa.aplicarRegra(jogador);
+                break;
+            }
         }
     }
 
@@ -198,7 +276,7 @@ public class Jogo {
         for (Jogador jogador : listaDeJogadores) {
             String nomeCor = nomeDasCores.get(jogador.getCor());
             System.out.println(jogador.getCor() + "Jogador " + nomeCor + " terminou na casa " + jogador.getPosicao() +
-                    " com " + jogador.getMoedas() + " moedas." + RESET);
+                    " em " + jogador.getJogadas() + " rodadas" + RESET);
         }
         System.out.println("Número total de jogadas: " + totalJogadas);
     }

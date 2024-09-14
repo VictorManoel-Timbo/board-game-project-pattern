@@ -10,9 +10,9 @@ public class JogadorFactory {
             case 1:
                 return new JogadorComum();
             case 2:
-                return new JogadorSortudo();
-            case 3:
                 return new JogadorAzarado();
+            case 3:
+                return new JogadorSortudo();
             default:
                 throw new IllegalArgumentException("Tipo de jogador não reconhecido.");
         }
