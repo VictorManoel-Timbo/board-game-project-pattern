@@ -18,5 +18,4 @@ public class JogadorComBone extends JogadorDecorator {
     public String getEquipamentos() {
         return equipamentos;
     }
-
 }

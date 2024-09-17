@@ -5,11 +5,10 @@ import models.Jogador;
 
 public class JogadorComum extends Jogador {
     public JogadorComum (Jogador jogador) {
-        this.moedas = jogador.getMoedas();
-        this.equipamentos = jogador.getEquipamentos();
-        this.posicao = jogador.getPosicao();
+        super(jogador);
     }
-    public JogadorComum(){};
+    public JogadorComum(){}
+
     @Override
     public int getMoedas() {
         return moedas;

@@ -41,13 +41,13 @@ public class Jogo {
     }};
 
     private void configJogadores() {
-        int numJogadores = 0;
+        int numJogadores;
         while (true) {
             try {
                 System.out.println("Digite o número de jogadores (máximo de " + LIMITE_JOGADORES + "):");
                 numJogadores = input.nextInt();
                 if (numJogadores <= 1 || numJogadores > LIMITE_JOGADORES) {
-                    throw new IllegalArgumentException("Número de jogadores deve ser entre 1 e " + LIMITE_JOGADORES);
+                    throw new IllegalArgumentException("Número de jogadores deve ser entre 2 e " + LIMITE_JOGADORES);
                 }
                 break;
             } catch (InputMismatchException e) {
@@ -58,15 +58,27 @@ public class Jogo {
             }
         }
 
+        int primeiroTipo = -1;
+
         for (int i = 0; i < numJogadores; i++) {
             while (true) {
                 try {
                     System.out.println("""
-                            Selecione um tipo de jogador:
-                            1 - Jogador Comum
-                            2 - Jogador Azarado
-                            3 - Jogador Sortudo""");
+                    Selecione um tipo de jogador:
+                    1 - Jogador Comum
+                    2 - Jogador Azarado
+                    3 - Jogador Sortudo""");
                     int tipo = input.nextInt();
+
+                    if (i == 0) {
+                        primeiroTipo = tipo;
+                    }
+
+                    else if (tipo == primeiroTipo && i == 1) {
+                        System.out.println("Por favor, escolha um tipo de jogador diferente do primeiro.");
+                        continue;
+                    }
+
                     Jogador jogador = JogadorFactory.criarJogador(tipo);
 
                     String cor = listaDeCores.get(i % listaDeCores.size());
@@ -88,8 +100,9 @@ public class Jogo {
         }
     }
 
+
     private void configTabuleiro() {
-        int numCasas = 0;
+        int numCasas;
         while (true) {
             try {
                 System.out.println("Digite o número de casas do tabuleiro (máximo de " + LIMITE_CASAS + "):");
@@ -107,7 +120,7 @@ public class Jogo {
         }
 
         ultimaCasa = numCasas;
-        int numCasasEspeciais = 0;
+        int numCasasEspeciais;
         while (true) {
             try {
                 System.out.println("Quantas casas especiais deseja adicionar (máximo de " + (int) (numCasas * PERCENTUAL_MAX_CASAS_ESPECIAIS) + ")?");
@@ -128,25 +141,36 @@ public class Jogo {
             while (true) {
                 try {
                     System.out.println("""
-                            Selecione um tipo de casa especial:
-                            1 - Casa Surpresa
-                            2 - Casa Prisão
-                            3 - Casa Sorte
-                            4 - Casa Azar
-                            5 - Casa Reversa
-                            6 - Casa Jogar de Novo
-                            7 - Casa Troca""");
+                        Selecione um tipo de casa especial:
+                        1 - Casa Surpresa
+                        2 - Casa Prisão
+                        3 - Casa Sorte
+                        4 - Casa Azar
+                        5 - Casa Reversa
+                        6 - Casa Jogar de Novo
+                        7 - Casa Troca""");
                     int tipo = input.nextInt();
-
+                    if (tipo < 1 || tipo > 7) {
+                        throw new InputMismatchException();
+                    }
                     System.out.println("Digite o número da casa especial (de 1 a " + numCasas + "): ");
                     int numeroCasaEspecial = input.nextInt();
+                    if (numeroCasaEspecial <= 0 || numeroCasaEspecial > numCasas) {
+                        throw new InputMismatchException();
+                    }
+
+                    boolean casaJaExiste = listaDeCasas.stream().anyMatch(casa -> casa.getNumero() == numeroCasaEspecial);
+                    if (casaJaExiste) {
+                        System.out.println("Essa casa especial já existe. Escolha outro número.");
+                        continue;
+                    }
 
                     Casa casaEspecial = CasaFactory.criarCasa(tipo, numeroCasaEspecial);
                     listaDeCasas.add(casaEspecial);
                     break;
                 } catch (InputMismatchException e) {
-                    System.out.println("Entrada inválida. Por favor, insira um número inteiro.");
-                    input.next();
+                    System.out.println("Entrada inválida. Por favor, insira um número válido.");
+                    input.nextLine();
                 } catch (IllegalArgumentException e) {
                     System.out.println(e.getMessage());
                 }
@@ -177,12 +201,13 @@ public class Jogo {
             }
 
             tabuleiro = Tabuleiro.getInstancia(listaDeJogadores, listaDeCasas);
+            tabuleiro.setQtdCasas(ultimaCasa);
             boolean jogoTerminado = false;
 
             while (!jogoTerminado) {
                 for (Jogador jogador : listaDeJogadores) {
                     tabuleiro.mostrarEstado(jogador);
-                    jogarRodada(jogador);
+                    tabuleiro.jogarRodada(jogador, modoDebug);
 
                     if (jogador.getPosicao() >= ultimaCasa) {
                         String nomeCor = nomeDasCores.get(jogador.getCor());
@@ -199,78 +224,6 @@ public class Jogo {
         }
     }
 
-    private void jogarRodada(Jogador jogador) {
-        if (jogador.isPreso()) {
-            libertarJogador(jogador);
-        } else {
-            if (modoDebug) {
-                realizarJogadaDebug(jogador);
-            } else {
-                realizarJogadaNormal(jogador);
-            }
-        }
-        jogador.jogada();
-        verificarCasaEspecial(jogador);
-    }
-
-    private void libertarJogador(Jogador jogadorAtual){
-        String nomeCor = nomeDasCores.get(jogadorAtual.getCor());
-        if (jogadorAtual.getJogadas() - jogadorAtual.getJogadaPreso() >= 2) {
-            jogadorAtual.setPreso(false);
-            System.out.println("Jogador " + nomeCor + " cumpriu as 2 rodadas e está livre para jogar.");
-            jogarRodada(jogadorAtual);
-        } else {
-            System.out.println("Deseja pagar 2 moedas para sair da prisão? (1 para sim, 2 para não)");
-            Scanner input = new Scanner(System.in);
-            int escolha = input.nextInt();
-
-            if (escolha == 1) {
-                if (jogadorAtual.pagarTaxaParaSair()) {
-                    jogadorAtual.setPreso(false);
-                    jogarRodada(jogadorAtual);
-                } else {
-                    System.out.println("Jogador não pode pagar e continuará preso.");
-                }
-            } else {
-                System.out.println("Jogador " + nomeCor + " optou por não pagar e continuará preso.");
-            }
-        }
-    }
-
-    private void realizarJogadaNormal(Jogador jogador) {
-        int[] dados = jogador.jogarDados();
-        int somaDados = dados[0] + dados[1];
-        String nomeCor = nomeDasCores.get(jogador.getCor());
-        System.out.println(jogador.getCor() + "Jogador " + nomeCor + " jogou os dados: " + dados[0] + " e " + dados[1] + ". Soma: " + somaDados + RESET);
-
-        int novaPosicao = jogador.getPosicao() + somaDados;
-        jogador.setPosicao(novaPosicao);
-        System.out.println("Jogador " + nomeCor + " moveu para a casa " + novaPosicao + RESET + "\n");
-    }
-
-    private void realizarJogadaDebug(Jogador jogador) {
-        String nomeCor = nomeDasCores.get(jogador.getCor());
-        System.out.println("Modo debug: Escolha a casa para o Jogador " + nomeCor + " (1 a " + ultimaCasa + "): ");
-        int novaPosicao = input.nextInt();
-
-        if (novaPosicao < 1 || novaPosicao > ultimaCasa) {
-            System.out.println("Posição inválida. Por favor, escolha uma casa entre 1 e " + ultimaCasa);
-            realizarJogadaDebug(jogador);
-        } else {
-            jogador.setPosicao(novaPosicao);
-            System.out.println("Jogador " + nomeCor + " moveu diretamente para a casa " + novaPosicao + RESET + "\n");
-        }
-    }
-
-    private void verificarCasaEspecial(Jogador jogador) {
-        for (Casa casa : listaDeCasas) {
-            if (jogador.getPosicao() == casa.getNumero()) {
-                casa.aplicarRegra(jogador);
-                break;
-            }
-        }
-    }
-
     private void mostrarResultadoFinal() {
         System.out.println("O jogo terminou! Aqui estão os resultados:");
         for (Jogador jogador : listaDeJogadores) {
@@ -278,6 +231,5 @@ public class Jogo {
             System.out.println(jogador.getCor() + "Jogador " + nomeCor + " terminou na casa " + jogador.getPosicao() +
                     " em " + jogador.getJogadas() + " rodadas" + RESET);
         }
-        System.out.println("Número total de jogadas: " + totalJogadas);
     }
 }

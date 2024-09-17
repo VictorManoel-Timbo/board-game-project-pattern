@@ -3,7 +3,7 @@ package factory.casas;
 import models.Casa;
 import models.Jogador;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import static models.Jogo.*;
@@ -22,7 +22,7 @@ public class CasaJogaDeNovo extends Casa {
     }
 
     @Override
-    public void aplicarRegra(Jogador jogador) {
+    public void aplicarRegra(ArrayList<Jogador> listaDeJogadores, Jogador jogador) {
         System.out.println("Casa Joga de Novo: O jogador lança os dados novamente!");
         int[] dados = jogador.jogarDados();
         int somaDados = dados[0] + dados[1];

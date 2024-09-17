@@ -9,8 +9,14 @@ import static models.Jogo.*;
 
 public class Tabuleiro {
     private static Tabuleiro instancia;
-    private ArrayList<Jogador> listaDeJogadores;
-    private ArrayList<Casa> listaDeCasas;
+    private final ArrayList<Jogador> listaDeJogadores;
+    private final ArrayList<Casa> listaDeCasas;
+    private int qtdCasas;
+
+    public void setQtdCasas(int qtdCasas) {
+        this.qtdCasas = qtdCasas;
+    }
+
     HashMap<String, String> nomeDasCores = new HashMap<>() {{
         put(RED, "vermelho");
         put(GREEN, "verde");
@@ -40,26 +46,31 @@ public class Tabuleiro {
         System.out.println("\nÉ a vez do jogador: " + nomeDasCores.get(jogadorAtual.getCor()));
     }
 
-    public void jogarRodada(Jogador jogadorAtual) {
-
+    public void jogarRodada(Jogador jogadorAtual, boolean modoDebug) {
+        jogadorAtual.jogada();
         if (jogadorAtual.isPreso()) {
             String nomeCor = nomeDasCores.get(jogadorAtual.getCor());
-            System.out.println(jogadorAtual.getCor() + " Jogador " + nomeCor + " está preso.");
-            libertarJogador(jogadorAtual);
+            System.out.println(jogadorAtual.getCor() + "Jogador " + nomeCor + " está preso."+ RESET);
+            libertarJogador(jogadorAtual, modoDebug);
 
         } else {
-            realizarJogada(jogadorAtual, nomeDasCores.get(jogadorAtual.getCor()));
+            if (modoDebug) {
+                realizarJogadaDebug(jogadorAtual);
+            } else {
+                realizarJogadaNormal(jogadorAtual);
+            }
         }
-        jogadorAtual.jogada();
-        verificarCasaEspecial(jogadorAtual);
+
+
     }
 
-    private void libertarJogador(Jogador jogadorAtual){
+    private void libertarJogador(Jogador jogadorAtual, boolean modoDebug){
         String nomeCor = nomeDasCores.get(jogadorAtual.getCor());
-        if (jogadorAtual.getJogadas() - jogadorAtual.getJogadaPreso() >= 2) {
+        System.out.println("Faltam " + (jogadorAtual.getJogadas() - jogadorAtual.getJogadaPreso() + 1) + " rodadas para ser liberto" );
+        if (jogadorAtual.getJogadas() - jogadorAtual.getJogadaPreso() > 2) {
             jogadorAtual.setPreso(false);
             System.out.println("Jogador " + nomeCor + " cumpriu as 2 rodadas e está livre para jogar.");
-            realizarJogada(jogadorAtual, nomeCor);
+            jogarRodada(jogadorAtual, modoDebug);
         } else {
             System.out.println("Deseja pagar 2 moedas para sair da prisão? (1 para sim, 2 para não)");
             Scanner input = new Scanner(System.in);
@@ -68,29 +79,48 @@ public class Tabuleiro {
             if (escolha == 1) {
                 if (jogadorAtual.pagarTaxaParaSair()) {
                     jogadorAtual.setPreso(false);
-                    realizarJogada(jogadorAtual, nomeCor);
+                    jogarRodada(jogadorAtual, modoDebug);
                 } else {
-                    System.out.println("Jogador não pode pagar e continuará preso.");
+                    System.out.println("Jogador não pode pagar e continuará preso.\n");
                 }
             } else {
-                System.out.println("Jogador " + nomeCor + " optou por não pagar e continuará preso.");
+                System.out.println("Jogador " + nomeCor + " optou por não pagar e continuará preso.\n");
             }
         }
     }
-    private void realizarJogada(Jogador jogador, String nomeCor) {
+    private void realizarJogadaNormal(Jogador jogador) {
         int[] dados = jogador.jogarDados();
         int somaDados = dados[0] + dados[1];
-        System.out.println(jogador.getCor() + "Jogador " + nomeCor + " jogou os dados: " + dados[0] + " e " + dados[1] + ". Soma: " + somaDados + RESET);
+        String nomeCor = nomeDasCores.get(jogador.getCor());
+        System.out.println(jogador.getCor() + "Jogador " + nomeCor + " jogou os dados: " + dados[0] + " e " + dados[1] + ". Avança: " + somaDados +" posições"+ RESET);
 
         int novaPosicao = jogador.getPosicao() + somaDados;
         jogador.setPosicao(novaPosicao);
         System.out.println("Jogador " + nomeCor + " moveu para a casa " + novaPosicao + RESET + "\n");
+        verificarCasaEspecial(jogador);
     }
+
+    private void realizarJogadaDebug(Jogador jogador) {
+        String nomeCor = nomeDasCores.get(jogador.getCor());
+        System.out.println("Modo debug: Escolha a casa para o Jogador " + nomeCor + " (1 a " + qtdCasas + "): ");
+        Scanner input = new Scanner(System.in);
+        int novaPosicao = input.nextInt();
+
+        if (novaPosicao < 1 || novaPosicao > qtdCasas) {
+            System.out.println("Posição inválida. Por favor, escolha uma casa entre 1 e " + qtdCasas);
+            realizarJogadaDebug(jogador);
+        } else {
+            jogador.setPosicao(novaPosicao);
+            System.out.println("Jogador " + nomeCor + " moveu diretamente para a casa " + novaPosicao + RESET + "\n");
+        }
+        verificarCasaEspecial(jogador);
+    }
+
 
     private void verificarCasaEspecial(Jogador jogador) {
         for (Casa casa : listaDeCasas) {
             if (jogador.getPosicao() == casa.getNumero()) {
-                casa.aplicarRegra(jogador);
+                casa.aplicarRegra(listaDeJogadores, jogador);
                 break;
             }
         }

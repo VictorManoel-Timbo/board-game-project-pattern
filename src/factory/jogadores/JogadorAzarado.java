@@ -5,11 +5,10 @@ import models.Jogador;
 
 public class JogadorAzarado extends Jogador {
     public JogadorAzarado (Jogador jogador) {
-        this.moedas = jogador.getMoedas();
-        this.equipamentos = jogador.getEquipamentos();
-        this.posicao = jogador.getPosicao();
+        super(jogador);
     }
-    public JogadorAzarado(){};
+    public JogadorAzarado(){}
+
     @Override
     public int getMoedas() {
         return moedas;

@@ -2,13 +2,20 @@ package models;
 
 public abstract class Jogador {
     protected int moedas;
-    protected String equipamentos;
-    protected int jogadas; // Contador de jogadas
+    protected String equipamentos = null;
+    protected int jogadas;
     protected String cor;
     protected int posicao;
     protected boolean preso;
-    protected int jogadaPreso; // Armazena a jogada em que o jogador foi preso
-
+    protected int jogadaPreso;
+    public Jogador(Jogador jogador){
+        this.moedas = jogador.getMoedas();
+        this.equipamentos = jogador.getEquipamentos();
+        this.jogadas = jogador.getJogadas();
+        this.cor = jogador.getCor();
+        this.posicao = jogador.getPosicao();
+    }
+    public Jogador(){}
     public String getCor() {
         return cor;
     }
@@ -45,15 +52,14 @@ public abstract class Jogador {
         this.jogadas += 1;
     }
 
-    public void setJogadaPreso(int jogadaPreso) {
-        this.jogadaPreso = jogadaPreso;
-    }
-
     public int getJogadaPreso() {
         return jogadaPreso;
     }
 
-    // Método que verifica se o jogador pode pagar a taxa para sair da prisão
+    public void setJogadaPreso(int jogadaPreso) {
+        this.jogadaPreso = jogadaPreso;
+    }
+
     public boolean pagarTaxaParaSair() {
         if (this.moedas >= 2) {
             this.moedas -= 2;
