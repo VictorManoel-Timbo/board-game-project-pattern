@@ -1,53 +1,47 @@
 package models;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.Scanner;
+import factory.casas.CasaFactory;
+import factory.casas.CasaSimples;
+import factory.jogadores.JogadorFactory;
 
-import static models.Jogo.*;
+import java.util.*;
+
+import static models.Cores.*;
 
 public class Tabuleiro {
     private static Tabuleiro instancia;
-    private final ArrayList<Jogador> listaDeJogadores;
-    private final ArrayList<Casa> listaDeCasas;
     private int qtdCasas;
 
-    public void setQtdCasas(int qtdCasas) {
+    private void setQtdCasas(int qtdCasas) {
         this.qtdCasas = qtdCasas;
     }
 
-    HashMap<String, String> nomeDasCores = new HashMap<>() {{
-        put(RED, "vermelho");
-        put(GREEN, "verde");
-        put(YELLOW, "amarelo");
-        put(BLUE, "azul");
-        put(PURPLE, "roxo");
-        put(CIANO, "ciano");
-    }};
+    private final Scanner input = new Scanner(System.in);
+    private final ArrayList<Jogador> listaDeJogadores = new ArrayList<>();
+    private final ArrayList<Casa> listaDeCasas = new ArrayList<>();
+    private int ultimaCasa;
+    private boolean modoDebug = false;
+    public static final int LIMITE_JOGADORES = 6;
+    public static final int LIMITE_CASAS = 40;
+    public static final double PERCENTUAL_MAX_CASAS_ESPECIAIS = 0.5;
 
-    private Tabuleiro(ArrayList<Jogador> listaDeJogadores, ArrayList<Casa> listaDeCasas) {
-        this.listaDeJogadores = listaDeJogadores;
-        this.listaDeCasas = listaDeCasas;
-    }
-
-    public static Tabuleiro getInstancia(ArrayList<Jogador> listaDeJogadores, ArrayList<Casa> listaDeCasas) {
+    public static Tabuleiro instancia() {
         if (instancia == null) {
-            instancia = new Tabuleiro(listaDeJogadores, listaDeCasas);
+            instancia = new Tabuleiro();
         }
         return instancia;
     }
 
-    public void mostrarEstado(Jogador jogadorAtual) {
+    public void mostrarEstado() {
         for (Jogador jogador : listaDeJogadores) {
             String nomeCor = nomeDasCores.get(jogador.getCor());
             System.out.println(jogador.getCor() + "Jogador " + nomeCor + " na casa " + jogador.getPosicao() + " com " + jogador.getMoedas() + " moedas e equipamentos: " + jogador.getEquipamentos() + RESET);
         }
-        System.out.println("\nÉ a vez do jogador: " + nomeDasCores.get(jogadorAtual.getCor()));
     }
 
-    public void jogarRodada(Jogador jogadorAtual, boolean modoDebug) {
+    private void jogarRodada(Jogador jogadorAtual, boolean modoDebug) {
         jogadorAtual.jogada();
+        System.out.println("\nÉ a vez do jogador: " + jogadorAtual.getCor() + nomeDasCores.get(jogadorAtual.getCor()) + RESET);
         if (jogadorAtual.isPreso()) {
             String nomeCor = nomeDasCores.get(jogadorAtual.getCor());
             System.out.println(jogadorAtual.getCor() + "Jogador " + nomeCor + " está preso."+ RESET);
@@ -60,8 +54,6 @@ public class Tabuleiro {
                 realizarJogadaNormal(jogadorAtual);
             }
         }
-
-
     }
 
     private void libertarJogador(Jogador jogadorAtual, boolean modoDebug){
@@ -116,13 +108,161 @@ public class Tabuleiro {
         verificarCasaEspecial(jogador);
     }
 
-
     private void verificarCasaEspecial(Jogador jogador) {
         for (Casa casa : listaDeCasas) {
             if (jogador.getPosicao() == casa.getNumero()) {
                 casa.aplicarRegra(listaDeJogadores, jogador);
                 break;
             }
+        }
+    }
+
+    public void setarJogadores(int numJogadores) {
+        int primeiroTipo = -1;
+
+        for (int i = 0; i < numJogadores; i++) {
+            while (true) {
+                try {
+                    System.out.println("""
+                    Selecione um tipo de jogador:
+                    1 - Jogador Comum
+                    2 - Jogador Azarado
+                    3 - Jogador Sortudo""");
+                    int tipo = input.nextInt();
+
+                    if (i == 0) {
+                        primeiroTipo = tipo;
+                    }
+
+                    else if (tipo == primeiroTipo && i == 1) {
+                        System.out.println("Por favor, escolha um tipo de jogador diferente do primeiro.");
+                        continue;
+                    }
+
+                    Jogador jogador = JogadorFactory.criarJogador(tipo);
+
+                    String cor = listaDeCores.get(i % listaDeCores.size());
+                    jogador.setCor(cor);
+
+                    jogador.setPosicao(0);
+                    listaDeJogadores.add(jogador);
+
+                    String nomeCor = nomeDasCores.get(cor);
+                    System.out.println(cor + "Jogador " + (i + 1) + " adicionado com a cor " + nomeCor + "!" + RESET);
+                    break;
+                } catch (InputMismatchException e) {
+                    System.out.println("Entrada inválida. Por favor, insira um número inteiro.");
+                    input.next();
+                } catch (IllegalArgumentException e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }
+    }
+
+    public void setarCasas(int numCasas) {
+        ultimaCasa = numCasas;
+        int numCasasEspeciais;
+        while (true) {
+            try {
+                System.out.println("Quantas casas especiais deseja adicionar (máximo de " + (int) (numCasas * PERCENTUAL_MAX_CASAS_ESPECIAIS) + ")?");
+                numCasasEspeciais = input.nextInt();
+                if (numCasasEspeciais < 0 || numCasasEspeciais > numCasas * PERCENTUAL_MAX_CASAS_ESPECIAIS) {
+                    throw new IllegalArgumentException("Número de casas especiais não pode exceder " + (int) (numCasas * PERCENTUAL_MAX_CASAS_ESPECIAIS));
+                }
+                break;
+            } catch (InputMismatchException e) {
+                System.out.println("Entrada inválida. Por favor, insira um número inteiro.");
+                input.next();
+            } catch (IllegalArgumentException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+        for (int i = 0; i < numCasasEspeciais; i++) {
+            while (true) {
+                try {
+                    System.out.println("""
+                        Selecione um tipo de casa especial:
+                        1 - Casa Surpresa
+                        2 - Casa Prisão
+                        3 - Casa Sorte
+                        4 - Casa Azar
+                        5 - Casa Reversa
+                        6 - Casa Jogar de Novo
+                        7 - Casa Troca""");
+                    int tipo = input.nextInt();
+                    if (tipo < 1 || tipo > 7) {
+                        throw new InputMismatchException();
+                    }
+                    System.out.println("Digite o número da casa especial (de 1 a " + numCasas + "): ");
+                    int numeroCasaEspecial = input.nextInt();
+                    if (numeroCasaEspecial <= 0 || numeroCasaEspecial > numCasas) {
+                        throw new InputMismatchException();
+                    }
+
+                    boolean casaJaExiste = listaDeCasas.stream().anyMatch(casa -> casa.getNumero() == numeroCasaEspecial);
+                    if (casaJaExiste) {
+                        System.out.println("Essa casa especial já existe. Escolha outro número.");
+                        continue;
+                    }
+
+                    Casa casaEspecial = CasaFactory.criarCasa(tipo, numeroCasaEspecial);
+                    listaDeCasas.add(casaEspecial);
+                    break;
+                } catch (InputMismatchException e) {
+                    System.out.println("Entrada inválida. Por favor, insira um número válido.");
+                    input.nextLine();
+                } catch (IllegalArgumentException e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }
+
+        for (int i = 1; i <= numCasas; i++) {
+            int finalI = i;
+            boolean casaEspecialExiste = listaDeCasas.stream().anyMatch(casa -> casa.getNumero() == finalI);
+            if (!casaEspecialExiste) {
+                listaDeCasas.add(new CasaSimples(i));
+            }
+        }
+    }
+    public void isFinished() {
+        try {
+            System.out.println("Deseja ativar o modo debug? (1 para sim, 2 para não)");
+            int escolhaDebug = input.nextInt();
+            if (escolhaDebug == 1) {
+                modoDebug = true;
+                System.out.println("Modo debug ativado.");
+            }
+
+            setQtdCasas(ultimaCasa);
+            boolean jogoTerminado = false;
+
+            while (!jogoTerminado) {
+                for (Jogador jogador : listaDeJogadores) {
+                    if (listaDeJogadores.get(0).getJogadas() != 0) mostrarEstado();
+                    jogarRodada(jogador, modoDebug);
+
+                    if (jogador.getPosicao() >= ultimaCasa) {
+                        String nomeCor = nomeDasCores.get(jogador.getCor());
+                        System.out.println(jogador.getCor() + "O jogador " + nomeCor + " venceu o jogo!" + RESET+"\n");
+                        jogoTerminado = true;
+                        break;
+                    }
+                }
+            }
+            mostrarResultadoFinal();
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+    private void mostrarResultadoFinal() {
+        System.out.println("O jogo terminou! Aqui estão os resultados:");
+        for (Jogador jogador : listaDeJogadores) {
+            String nomeCor = nomeDasCores.get(jogador.getCor());
+            System.out.println(jogador.getCor() + "Jogador " + nomeCor + " terminou na casa " + jogador.getPosicao() +
+                    " em " + jogador.getJogadas() + " rodadas" + RESET);
         }
     }
 }

@@ -14,10 +14,10 @@ public class CasaSorte extends Casa {
     @Override
     public void aplicarRegra(ArrayList<Jogador> listaDeJogadores, Jogador jogador) {
         if (!(jogador instanceof JogadorAzarado)) {
-            System.out.println("Casa Sorte: O jogador avança 3 casas!");
+            System.out.println("Casa Sorte: O jogador avança 3 casas!\n");
             jogador.setPosicao(jogador.getPosicao()+3);
         } else {
-            System.out.println("Casa Sorte: O jogador azarado não sai do lugar");
+            System.out.println("Casa Sorte: O jogador azarado não sai do lugar\n");
         }
     }
 }

@@ -6,6 +6,8 @@ import models.Jogador;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import static models.Cores.nomeDasCores;
+
 public class CasaReversa extends Casa {
     public CasaReversa(int numero) {
         super(numero);
@@ -20,8 +22,8 @@ public class CasaReversa extends Casa {
 
         Jogador firstPlayer = playersCopy.get(0);
         int aux = firstPlayer.getPosicao();
-
-        System.out.println("Jogador " + jogador.getCor() + " trocou de posição com o jogador " + firstPlayer.getCor());
+        if (jogador.getCor().equals(firstPlayer.getCor())) System.out.println("Jogador não troca de posição, pois é o ultimo colocado\n");
+        else System.out.println("Jogador " + nomeDasCores.get(jogador.getCor()) + " trocou de posição com o jogador " + nomeDasCores.get(firstPlayer.getCor()) + "\n");
 
         listaDeJogadores.get(listaDeJogadores.indexOf(firstPlayer)).setPosicao(jogador.getPosicao());
         jogador.setPosicao(aux);

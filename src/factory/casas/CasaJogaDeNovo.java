@@ -4,19 +4,12 @@ import models.Casa;
 import models.Jogador;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
-import static models.Jogo.*;
+import static models.Cores.*;
+
+
 
 public class CasaJogaDeNovo extends Casa {
-    HashMap<String, String> nomeDasCores = new HashMap<>() {{
-        put(RED, "vermelho");
-        put(GREEN, "verde");
-        put(YELLOW, "amarelo");
-        put(BLUE, "azul");
-        put(PURPLE, "roxo");
-        put(CIANO, "ciano");
-    }};
     public CasaJogaDeNovo(int numero) {
         super(numero);
     }

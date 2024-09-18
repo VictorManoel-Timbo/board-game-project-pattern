@@ -25,15 +25,15 @@ public class CasaSurpresa extends Casa {
 
         switch (novoTipo) {
             case 1 -> {
-                System.out.println("Você tirou a carta Comum: agora você é um Jogador Comum.");
+                System.out.println("Carta Comum: agora você é um Jogador Comum.\n");
                 novoJogador = new JogadorComum(jogador);
             }
             case 2 -> {
-                System.out.println("Você tirou a carta Sorte: agora você é um Jogador Sortudo.");
+                System.out.println("Carta Sorte: agora você é um Jogador Sortudo.\n");
                 novoJogador = new JogadorSortudo(jogador);
             }
             case 3 -> {
-                System.out.println("Você tirou a carta Azar: agora você é um Jogador Azarado.");
+                System.out.println("Carta Azar: agora você é um Jogador Azarado.\n");
                 novoJogador = new JogadorAzarado(jogador);
             }
         }

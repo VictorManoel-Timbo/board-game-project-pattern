@@ -18,11 +18,11 @@ public class CasaAzar extends Casa {
             if (jogador.getMoedas() > 3) {
                 jogador.setMoedas(jogador.getMoedas() - 3);
             } else {
-                System.out.println("O jogador tem 3 moedas ou menos, irá perder todas as moedas");
+                System.out.println("O jogador tem 3 moedas ou menos, irá perder todas as moedas\n");
                 jogador.setMoedas(0);
             }
         } else {
-            System.out.println("Casa Azar: O jogador sortudo escapa da praga!");
+            System.out.println("Casa Azar: O jogador sortudo escapa da praga!\n");
         }
     }
 }

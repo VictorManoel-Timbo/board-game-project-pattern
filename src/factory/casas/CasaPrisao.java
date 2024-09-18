@@ -14,6 +14,6 @@ public class CasaPrisao extends Casa {
     public void aplicarRegra(ArrayList<Jogador> listaDeJogadores, Jogador jogador) {
         jogador.setJogadaPreso(jogador.getJogadas());
         jogador.setPreso(true);
-        System.out.println("Casa Prisão: Jogador fica preso por 2 rodadas");
+        System.out.println("Casa Prisão: Jogador fica preso por 2 rodadas\n");
     }
 }
